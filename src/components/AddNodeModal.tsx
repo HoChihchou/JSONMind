@@ -15,6 +15,7 @@ interface AddNodeModalProps {
 }
 
 export const AddNodeModal: React.FC<AddNodeModalProps> = ({ type: initialType, parentType, useMemory = true, onConfirm, onCancel }) => {
+  const [visible, setVisible] = useState(false);
   const [type, setType] = useState<'string' | 'number' | 'boolean' | 'object' | 'array'>(() => {
     // Only use memory if useMemory is true
     if (useMemory) {
@@ -30,6 +31,22 @@ export const AddNodeModal: React.FC<AddNodeModalProps> = ({ type: initialType, p
 
   const isContainer = type === 'object' || type === 'array';
   const needsKey = parentType !== 'array'; // Arrays auto-generate keys (indices)
+
+  // Trigger enter animation on mount
+  useEffect(() => {
+    requestAnimationFrame(() => setVisible(true));
+  }, []);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onCancel]);
 
   // Update value when type changes
   useEffect(() => {
@@ -90,8 +107,8 @@ export const AddNodeModal: React.FC<AddNodeModalProps> = ({ type: initialType, p
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl p-6 w-[480px] animate-in fade-in zoom-in duration-200">
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`bg-white rounded-xl shadow-2xl p-6 w-[480px] transition-all duration-200 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-slate-800 font-heading">Add New Node</h3>
           <button 

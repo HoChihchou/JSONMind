@@ -8,6 +8,7 @@ interface JsonState {
   error: string | null;
   hoveredPath: string[] | null;
   selectedPath: string[] | null;
+  showGrid: boolean;
   setJsonText: (text: string) => void;
   setJsonObject: (obj: any) => void;
   updateNodeValue: (path: string[], newValue: any) => void;
@@ -16,6 +17,7 @@ interface JsonState {
   addNode: (path: string[], key: string, value: any) => void;
   setHoveredPath: (path: string[] | null) => void;
   setSelectedPath: (path: string[] | null) => void;
+  toggleGrid: () => void;
 }
 
 const DEFAULT_JSON = {
@@ -74,6 +76,7 @@ export const useJsonStore = create<JsonState>()(
       error: null,
       hoveredPath: null,
       selectedPath: null,
+      showGrid: true,
       setJsonText: (text: string) => {
         try {
           const parsed = JSON.parse(text);
@@ -92,6 +95,7 @@ export const useJsonStore = create<JsonState>()(
       },
       setHoveredPath: (path) => set({ hoveredPath: path }),
       setSelectedPath: (path) => set({ selectedPath: path }),
+      toggleGrid: () => set((state) => ({ showGrid: !state.showGrid })),
       updateNodeValue: (path: string[], newValue: any) => {
         const { jsonObject } = get();
         // Path includes 'root', remove it

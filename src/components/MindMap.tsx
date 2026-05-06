@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import ReactFlow, { 
   Background, 
   Controls, 
@@ -7,7 +7,8 @@ import ReactFlow, {
   NodeTypes,
   Panel,
   useReactFlow,
-  Node
+  Node,
+  BackgroundVariant
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useJsonStore } from '../store/useJsonStore';
@@ -17,7 +18,7 @@ import { ContainerNode } from './nodes/ContainerNode';
 import { ContextMenu } from './ContextMenu';
 import { AddNodeModal } from './AddNodeModal';
 import { HelpModal } from './HelpModal';
-import { Image as ImageIcon, Maximize2, Minimize2, Copy, HelpCircle } from 'lucide-react';
+import { Image as ImageIcon, Maximize2, Minimize2, Copy, HelpCircle, Github, Settings, Grid3X3, Check } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { saveAs } from 'file-saver';
 
@@ -27,14 +28,16 @@ const nodeTypes: NodeTypes = {
 };
 
 export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: boolean) => void }> = ({ isFullscreen, setIsFullscreen }) => {
-  const { jsonObject, addNode, deleteNode, updateNodeValue, setHoveredPath, hoveredPath, selectedPath, setSelectedPath } = useJsonStore();
+  const { jsonObject, addNode, deleteNode, updateNodeValue, setHoveredPath, hoveredPath, selectedPath, setSelectedPath, showGrid, toggleGrid } = useJsonStore();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { getViewport } = useReactFlow();
   
   const [menu, setMenu] = useState<{ x: number; y: number; targetType: 'canvas' | 'node'; targetNode?: Node } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [modal, setModal] = useState<{ type: 'string' | 'number' | 'boolean' | 'object' | 'array'; parentType?: 'array' | 'object'; targetPath: string[]; useMemory?: boolean } | null>(null);
+  const settingsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -89,7 +92,26 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPath, nodes, deleteNode, setSelectedPath, setIsFullscreen]);
+  }, [selectedPath, nodes, deleteNode, setSelectedPath, setIsFullscreen, isFullscreen]);
+
+  const handleSettingsEnter = useCallback(() => {
+    if (settingsTimerRef.current) {
+      clearTimeout(settingsTimerRef.current);
+      settingsTimerRef.current = null;
+    }
+    setShowSettings(true);
+  }, []);
+
+  const handleSettingsLeave = useCallback(() => {
+    settingsTimerRef.current = setTimeout(() => {
+      setShowSettings(false);
+    }, 150); // Small delay so user can move from button to menu
+  }, []);
+
+  const handleSettingsItemClick = useCallback((action: () => void) => {
+    action();
+    setShowSettings(false);
+  }, []);
 
   const onAddChildFromNode = useCallback((_: React.MouseEvent, nodeData: any, rect: DOMRect) => {
     setMenu({
@@ -171,6 +193,7 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
 
   const onPaneClick = useCallback(() => {
     setMenu(null);
+    setShowSettings(false);
     setSelectedPath(null);
     setHoveredPath(null);
   }, [setMenu, setSelectedPath, setHoveredPath]);
@@ -271,9 +294,56 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
           style: { stroke: '#cbd5e1', strokeWidth: 2.5 },
         }}
       >
-        <Background color="#e2e8f0" gap={20} />
+        <Background 
+          color="#cbd5e1" 
+          gap={32}
+          size={1.5}
+          variant={BackgroundVariant.Dots}
+          style={{ opacity: showGrid ? 1 : 0, transition: 'opacity 0.2s ease' }}
+        />
         <Controls />
         <Panel position="top-right" className="flex gap-2">
+          <div 
+            className="relative"
+            onMouseEnter={handleSettingsEnter}
+            onMouseLeave={handleSettingsLeave}
+          >
+            <button 
+              className={`flex items-center h-full gap-2 px-3 py-2 border rounded-lg shadow-md hover:shadow-lg text-sm font-medium transition-smooth cursor-pointer ${
+                showSettings
+                  ? 'bg-primary-50 text-primary-700 border-primary-300'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+              title="Settings"
+              aria-label="Settings"
+            >
+              <Settings size={18} strokeWidth={2} />
+            </button>
+            {showSettings && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl py-1 z-50">
+                <button
+                  onClick={() => handleSettingsItemClick(toggleGrid)}
+                  className="w-full flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Grid3X3 size={14} />
+                    Show Grid
+                  </span>
+                  {showGrid && <Check size={14} className="text-primary-600" />}
+                </button>
+              </div>
+            )}
+          </div>
+          <a
+            href="https://github.com/cassius0924/jsonmind"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg shadow-md hover:shadow-lg hover:bg-slate-50 text-sm font-medium text-slate-700 transition-smooth cursor-pointer"
+            title="GitHub Repository"
+            aria-label="View GitHub Repository"
+          >
+            <Github size={18} strokeWidth={2} />
+          </a>
           <button 
             onClick={() => setIsFullscreen(!isFullscreen)}
             className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg shadow-md hover:shadow-lg hover:bg-slate-50 text-sm font-medium text-slate-700 transition-smooth cursor-pointer"
