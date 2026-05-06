@@ -9,6 +9,7 @@ export const JsonEditor: React.FC = () => {
   const editorRef = useRef<any>(null);
   const decorationsRef = useRef<string[]>([]);
   const monaco = useMonaco();
+  const isEmpty = jsonText.trim() === '';
 
   const handleEditorDidMount: OnMount = (editor) => {
     editorRef.current = editor;
@@ -73,20 +74,27 @@ export const JsonEditor: React.FC = () => {
               Valid
             </span>
           )}
-          {!isValid && (
+          {!isValid && !isEmpty && (
             <span className="flex items-center text-xs text-red-600 gap-1 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
               <AlertCircle size={12} strokeWidth={2.5} />
               Invalid JSON
             </span>
           )}
+          {isEmpty && (
+            <span className="flex items-center text-xs text-amber-600 gap-1 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+              <Braces size={12} strokeWidth={2} />
+              Please enter JSON
+            </span>
+          )}
         </div>
         <button
           onClick={handleFormat}
-          className="p-1.5 text-slate-600 hover:bg-slate-200 hover:text-slate-800 rounded transition-smooth"
-          title="Format JSON (Ctrl+Shift+F)"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 bg-white hover:bg-slate-100 hover:text-slate-800 border border-slate-200 rounded-lg shadow-sm hover:shadow transition-smooth"
+          title="Format JSON"
           aria-label="Format JSON"
         >
-          <Braces size={18} strokeWidth={2} />
+          <Braces size={16} strokeWidth={2} />
+          Format
         </button>
       </div>
       
@@ -114,7 +122,7 @@ export const JsonEditor: React.FC = () => {
         />
       </div>
       
-      {!isValid && error && (
+      {!isValid && !isEmpty && error && (
         <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-xs text-red-700 truncate font-mono">
           Error: {error}
         </div>

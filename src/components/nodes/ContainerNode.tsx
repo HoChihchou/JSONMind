@@ -10,6 +10,7 @@ export const ContainerNode = memo(({ data }: NodeProps) => {
   const { label, isArray, path, onAddChild } = data;
   const { renameNodeKey, deleteNode, selectedPath } = useJsonStore();
   const isSelected = selectedPath?.join('.') === path?.join('.');
+  const isRoot = path?.length === 1 && path[0] === 'root';
 
   const [isEditingKey, setIsEditingKey] = useState(false);
   const [localKey, setLocalKey] = useState(label);
@@ -94,14 +95,16 @@ export const ContainerNode = memo(({ data }: NodeProps) => {
           >
             <Plus size={14} strokeWidth={2.5} />
           </button>
-          <button 
-            onClick={handleDelete}
-            className="p-1.5 hover:bg-red-100 text-red-600 rounded transition-smooth cursor-pointer"
-            title="Delete Node (Press Delete)"
-            aria-label="Delete node"
-          >
-            <Trash2 size={14} strokeWidth={2.5} />
-          </button>
+          {!isRoot && (
+            <button 
+              onClick={handleDelete}
+              className="p-1.5 hover:bg-red-100 text-red-600 rounded transition-smooth cursor-pointer"
+              title="Delete Node (Press Delete)"
+              aria-label="Delete node"
+            >
+              <Trash2 size={14} strokeWidth={2.5} />
+            </button>
+          )}
         </div>
       )}
 
@@ -109,6 +112,7 @@ export const ContainerNode = memo(({ data }: NodeProps) => {
         "flex items-center rounded-lg shadow-sm px-3 py-2 text-sm transition-shadow duration-200 ease-out cursor-pointer",
         NODE_STYLES.maxWidthContainer,
         containerClass,
+        isRoot && NODE_STYLES.root,
         isSelected 
           ? "border-2 border-primary-600 shadow-lg ring-2 ring-primary-100" 
           : "border hover:shadow-md"

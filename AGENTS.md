@@ -43,3 +43,4 @@
 - This repo currently appears to be frontend-only; do not assume a backend service exists.
 - There is no dedicated test suite configured in the visible project files; rely on build validation and targeted manual checks unless tests are added.
 - Avoid large structural refactors unless they are required by the task.
+- **HelpModal sync**: When adding, removing, or changing keyboard shortcuts, toolbar buttons, mouse interactions, or any user-facing feature that should be documented, update `src/components/HelpModal.tsx` accordingly. The help modal should always reflect the current state of the application. Changes to shortcut keys (e.g., fullscreen toggle, delete, undo/redo), modal behavior (e.g., ESC to close), node type legends, and toolbar functionality must be mirrored in the help content.

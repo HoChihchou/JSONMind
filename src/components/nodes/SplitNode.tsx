@@ -9,6 +9,7 @@ export const SplitNode = memo(({ data }: NodeProps) => {
   const { label, value, type, path } = data;
   const { updateNodeValue, renameNodeKey, deleteNode, selectedPath } = useJsonStore();
   const isSelected = selectedPath?.join('.') === path?.join('.');
+  const isRoot = path?.length === 1 && path[0] === 'root';
   
   const [isEditingKey, setIsEditingKey] = useState(false);
   const [isEditingValue, setIsEditingValue] = useState(false);
@@ -149,7 +150,7 @@ export const SplitNode = memo(({ data }: NodeProps) => {
       onMouseLeave={() => setShowActions(false)}
     >
       {/* Action Buttons */}
-      {showActions && (
+      {showActions && !isRoot && (
         <div className="absolute -top-8 right-0 flex gap-1 bg-white border border-slate-200 rounded-md shadow-md p-1.5 z-10 backdrop-blur-sm">
           <button 
             onClick={handleDelete}
@@ -165,6 +166,7 @@ export const SplitNode = memo(({ data }: NodeProps) => {
       <div className={clsx(
         "flex items-stretch border rounded-lg shadow-sm bg-white overflow-hidden text-sm transition-shadow duration-200 ease-out cursor-pointer",
         NODE_STYLES.maxWidthSplit,
+        isRoot && NODE_STYLES.root,
         isSelected 
           ? "border-primary-600 border-2 shadow-lg ring-2 ring-primary-100" 
           : "border-slate-200 hover:shadow-md"

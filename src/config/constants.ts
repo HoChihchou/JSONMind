@@ -3,6 +3,7 @@ export const NODE_STYLES = {
   maxWidthContainer: 'max-w-[300px]',
   minWidthKey: 'min-w-[60px]',
   minWidthValue: 'min-w-[80px]',
+  root: 'border-l-4 border-l-primary-500 bg-primary-50/30',
 };
 
 // Updated color palette with better contrast and visual hierarchy

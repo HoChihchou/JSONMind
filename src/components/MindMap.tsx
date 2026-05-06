@@ -40,6 +40,9 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
   const settingsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Don't register any keyboard shortcuts when a modal or help is open
+    if (modal || showHelp) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check if user is typing in an input field
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
@@ -57,8 +60,8 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
         return;
       }
 
-      // Delete selected node
-      if (selectedPath && (e.key === 'Delete' || e.key === 'Backspace')) {
+      // Delete selected node (root cannot be deleted)
+      if (selectedPath && selectedPath.length > 1 && (e.key === 'Delete' || e.key === 'Backspace')) {
         e.preventDefault();
         deleteNode(selectedPath);
         setSelectedPath(null);
@@ -82,8 +85,8 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
         return;
       }
 
-      // Toggle fullscreen (F11 or F)
-      if (e.key === 'F11' || (e.key === 'f' && !e.ctrlKey && !e.metaKey)) {
+      // Toggle fullscreen (Ctrl+M)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
         e.preventDefault();
         setIsFullscreen(!isFullscreen);
         return;
@@ -92,7 +95,7 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPath, nodes, deleteNode, setSelectedPath, setIsFullscreen, isFullscreen]);
+  }, [selectedPath, nodes, deleteNode, setSelectedPath, setIsFullscreen, isFullscreen, modal, showHelp]);
 
   const handleSettingsEnter = useCallback(() => {
     if (settingsTimerRef.current) {
@@ -334,20 +337,10 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
               </div>
             )}
           </div>
-          <a
-            href="https://github.com/cassius0924/jsonmind"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg shadow-md hover:shadow-lg hover:bg-slate-50 text-sm font-medium text-slate-700 transition-smooth cursor-pointer"
-            title="GitHub Repository"
-            aria-label="View GitHub Repository"
-          >
-            <Github size={18} strokeWidth={2} />
-          </a>
           <button 
             onClick={() => setIsFullscreen(!isFullscreen)}
             className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg shadow-md hover:shadow-lg hover:bg-slate-50 text-sm font-medium text-slate-700 transition-smooth cursor-pointer"
-            title={isFullscreen ? 'Exit Fullscreen (F11)' : 'Fullscreen (F11)'}
+            title={isFullscreen ? 'Exit Fullscreen (Ctrl+M)' : 'Fullscreen (Ctrl+M)'}
             aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           >
             {isFullscreen ? <Minimize2 size={18} strokeWidth={2} /> : <Maximize2 size={18} strokeWidth={2} />}
@@ -360,6 +353,16 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
           >
             <HelpCircle size={18} strokeWidth={2} />
           </button>
+          <a
+            href="https://github.com/cassius0924/jsonmind"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg shadow-md hover:shadow-lg hover:bg-slate-50 text-sm font-medium text-slate-700 transition-smooth cursor-pointer"
+            title="GitHub Repository"
+            aria-label="View GitHub Repository"
+          >
+            <Github size={18} strokeWidth={2} />
+          </a>
           <button 
             onClick={onExportImage}
             className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg shadow-md hover:shadow-lg hover:bg-slate-50 text-sm font-medium text-slate-700 transition-smooth cursor-pointer"
@@ -397,6 +400,7 @@ export const MindMap: React.FC<{ isFullscreen: boolean; setIsFullscreen: (val: b
             y={menu.y}
             targetType={menu.targetType}
             nodeType={menu.targetNode?.data?.type || (menu.targetNode?.data?.isArray ? 'array' : 'object')}
+            isRoot={menu.targetNode?.data?.path?.length === 1 && menu.targetNode?.data?.path[0] === 'root'}
             onClose={() => setMenu(null)}
             onAddNode={handleAddNodeSelect}
             onDelete={handleDeleteNode}
